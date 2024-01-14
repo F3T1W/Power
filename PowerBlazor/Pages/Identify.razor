@@ -1,0 +1,52 @@
+@page "/identify"
+
+@using System.Linq
+@using System.Collections.Generic
+@using PowerBlazor.Data
+
+<div class="container">
+  <h1>Identify image</h1>
+
+  <p>
+    This component allows sending an image to run the image recognition model.
+    Select an image to start the upload and recognition process.
+  </p>
+  <form>
+    @*
+    Uses the BlazorFileInput component: http://blog.stevensanderson.com/2019/09/13/blazor-inputfile/
+    Note how the "accept" attribute gets passed to the rendered input HTML element even when not declared explicitly as a parameter by the InputFile component
+    See: https://docs.microsoft.com/en-us/aspnet/core/blazor/components?view=aspnetcore-3.1#attribute-splatting-and-arbitrary-parameters
+    *@
+    <InputFile multiple OnChange="OnImageFileSelected" accept="image/*"/>
+  </form>
+
+  <div class="row my-4">
+    @foreach (var image in selectedImages)
+    {
+      <div class="col-4">
+        @*
+        Notice the usage of the @key parameter so images can be correctly removed
+        (Be warned: Components for images after the one being removed can still be removed by Blazor and re-initialized, which might take you by surprise if you have logic dependent on the lifecycle!)
+        See: https://docs.microsoft.com/en-us/aspnet/core/blazor/components?view=aspnetcore-3.1#use-key-to-control-the-preservation-of-elements-and-components
+        *@
+        <IdentifyImage @key="image" Image="image" OnClear="OnClear" />
+      </div>
+    }
+  </div>
+</div>
+
+
+@code {
+    List<SelectedImage> selectedImages = new List<SelectedImage>();
+
+    void OnImageFileSelected(InputFileChangeEventArgs files)
+    {
+        selectedImages.AddRange(
+          files.GetMultipleFiles(10).Select(f => new SelectedImage(f)));
+    }
+
+    void OnClear(SelectedImage image)
+    {
+        selectedImages.Remove(image);
+    }
+}
